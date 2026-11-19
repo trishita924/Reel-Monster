@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Reel Monster</string>
+    <string name="notif_channel">Floating monster</string>
+    <string name="notif_title">Reel Monster is floating</string>
+    <string name="notif_text">Tap the monster to count a reel.</string>
+    <string name="notif_hide">Hide monster</string>
+    <string name="overlay_title">Allow floating monster?</string>
+    <string name="overlay_body">Reel Monster needs the \"Display over other apps\" permission so it can float above Instagram and YouTube. It only draws the monster. It never reads your screen.</string>
+    <string name="overlay_go">Open settings</string>
+    <string name="overlay_denied">Permission not granted, so the monster stays hidden.</string>
+    <string name="reset_title">Reset today\'s count?</string>
+    <string name="reset_body">Today\'s reel count goes back to zero. Past days are kept.</string>
+    <string name="reset_confirm">Reset</string>
+    <string name="cancel">Cancel</string>
+</resources>

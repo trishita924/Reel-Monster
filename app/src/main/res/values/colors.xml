@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="cream">#FFF8EE</color>
+    <color name="lavender">#D9C9FA</color>
+    <color name="lavender_soft">#EFE8FF</color>
+    <color name="purple">#7A5CC9</color>
+    <color name="purple_deep">#3B2A5E</color>
+    <color name="pink">#FFC2DA</color>
+    <color name="pink_strong">#F27BAA</color>
+    <color name="card">#FFFFFF</color>
+    <color name="muted">#8B7FA8</color>
+    <color name="launcher_bg">#EFE8FF</color>
+</resources>

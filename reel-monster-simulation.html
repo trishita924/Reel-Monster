@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Reel Monster: browser simulation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;700&family=Nunito:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cream:#FFF8EE;--lav:#D9C9FA;--lav-soft:#EFE8FF;--purple:#7A5CC9;--deep:#3B2A5E;--pink:#FFC2DA;--pink-s:#F27BAA;--muted:#8B7FA8;
+  --page:#F3EEFB;--page-ink:#3B2A5E;--page-muted:#6E6190;--panel:#fff;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--page:#1D1630;--page-ink:#F1EAFF;--page-muted:#B7A9D8;--panel:#2A2142}}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--page-ink);font-family:'Nunito',system-ui,sans-serif;font-size:16px;line-height:1.5}
+.wrap{max-width:980px;margin:0 auto;padding:24px 16px 48px;display:flex;flex-wrap:wrap;gap:32px;justify-content:center;align-items:flex-start}
+.side{flex:1 1 280px;max-width:380px}
+h1{font-family:'Fredoka',sans-serif;font-weight:700;font-size:34px;line-height:1.1;margin:0 0 8px}
+.badge{display:inline-block;background:var(--pink);color:var(--deep);border-radius:999px;padding:4px 12px;font-weight:700;font-size:14px;margin-bottom:12px}
+.side p{color:var(--page-muted);margin:0 0 16px}
+.panel{background:var(--panel);border-radius:20px;padding:16px;margin-bottom:12px}
+.panel h2{font-family:'Fredoka',sans-serif;font-size:17px;margin:0 0 8px}
+.row{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:0;border-radius:14px;padding:10px 14px;font:700 15px 'Nunito',sans-serif;background:var(--lav-soft);color:var(--deep);cursor:pointer}
+.chip:hover{background:var(--lav)}
+.chip:focus-visible,.btn:focus-visible,.tab:focus-visible,#fm:focus-visible,#pv:focus-visible{outline:3px solid var(--purple);outline-offset:2px}
+.panel ul{margin:0;padding-left:18px;color:var(--page-muted);font-size:14px}
+
+/* phone */
+.phone{width:340px;height:700px;border-radius:46px;background:#2b2140;padding:10px;box-shadow:0 20px 50px rgba(59,42,94,.28);flex:0 0 auto}
+.screen{position:relative;width:100%;height:100%;border-radius:36px;overflow:hidden;background:var(--cream);color:var(--deep);display:flex;flex-direction:column}
+.notch{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:90px;height:22px;border-radius:12px;background:#2b2140;z-index:5}
+.view{flex:1;overflow-y:auto;display:none}
+.view.on{display:block}
+.tabs{display:flex;height:58px;background:#fff;border-top:1px solid var(--lav-soft);flex:0 0 auto}
+.tab{flex:1;border:0;background:none;font:700 14px 'Nunito',sans-serif;color:var(--muted);cursor:pointer}
+.tab[aria-selected=true]{color:var(--purple);box-shadow:inset 0 3px 0 var(--purple)}
+
+/* feed */
+#feed{padding:0;position:relative}
+.reel{height:100%;min-height:580px;display:flex;flex-direction:column;justify-content:flex-end;padding:20px;color:#fff;transition:background .4s}
+.reel small{opacity:.9}
+.reel b{font-family:'Fredoka',sans-serif;font-size:22px}
+.nextbtn{position:absolute;right:14px;top:56px;border:0;border-radius:999px;background:rgba(255,255,255,.85);color:var(--deep);font:700 13px 'Nunito',sans-serif;padding:8px 12px;cursor:pointer}
+.sample{position:absolute;left:14px;top:56px;background:rgba(0,0,0,.3);color:#fff;border-radius:999px;padding:4px 10px;font-size:12px}
+
+/* dashboard */
+#dash{padding:44px 16px 16px}
+.t{font-family:'Fredoka',sans-serif;font-weight:700;font-size:24px;margin:0}
+.sub{font-size:12px;color:var(--muted);margin:0 0 12px}
+.hero{background:linear-gradient(180deg,var(--lav),var(--pink));border-radius:28px;padding:14px;text-align:center}
+#pv{width:120px;height:120px;margin:0 auto;display:block;background:none;border:0;padding:0;cursor:pointer}
+.msg{min-height:40px;font-weight:700;font-size:15px;margin:2px 0}
+.big{font-family:'Fredoka',sans-serif;font-weight:700;font-size:56px;line-height:1}
+.btns{display:flex;gap:8px;margin:10px 0}
+.btn{border:0;border-radius:18px;height:50px;font:700 16px 'Nunito',sans-serif;cursor:pointer}
+.btn.o{background:#fff;color:var(--purple);border:2px solid var(--lav);width:64px}
+.btn.p{background:var(--purple);color:#fff;flex:1}
+.cards{display:flex;gap:8px;margin-bottom:10px}
+.card{background:#fff;border:1px solid var(--lav-soft);border-radius:20px;padding:12px;flex:1}
+.card small{display:block;color:var(--muted);font-size:11px}
+.card b{font-family:'Fredoka',sans-serif;font-size:20px}
+.chart{display:flex;align-items:flex-end;gap:6px;height:130px;margin-top:8px}
+.col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;font-size:11px;color:var(--muted)}
+.col i{display:block;width:70%;background:var(--lav);border-radius:8px;min-height:5px;transition:height .35s}
+.col.today i{background:var(--pink-s)}
+.col span{font-weight:700;color:var(--deep);margin-bottom:2px}
+.switchrow{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.switchrow small{color:var(--muted);font-size:12px;display:block}
+.sw{width:50px;height:30px;border-radius:15px;border:0;background:var(--lav);position:relative;cursor:pointer;flex:0 0 auto;transition:background .2s}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:transform .2s}
+.sw[aria-checked=true]{background:var(--purple)}
+.sw[aria-checked=true]::after{transform:translateX(20px)}
+.reset{width:100%;background:none;border:0;color:var(--pink-s);font:700 14px 'Nunito',sans-serif;padding:10px;cursor:pointer}
+.foot{font-size:11px;color:var(--muted);text-align:center;margin:4px 0 0}
+
+/* floating monster */
+#fm{position:absolute;z-index:6;touch-action:none;cursor:grab;display:none;flex-direction:column;align-items:center;background:none;border:0;padding:0;user-select:none}
+#fm.on{display:flex}
+#fm:active{cursor:grabbing}
+#bubble{background:#fff;color:var(--deep);border:2px solid var(--lav);border-radius:14px;padding:6px 10px;font:700 12px 'Nunito',sans-serif;max-width:170px;text-align:center;margin-bottom:4px;opacity:0;transform:translateY(4px);transition:opacity .2s,transform .2s;pointer-events:none}
+#bubble.show{opacity:1;transform:none}
+#fmsvg{transition:width .45s cubic-bezier(.3,1.5,.5,1),height .45s cubic-bezier(.3,1.5,.5,1)}
+.bob{animation:bob 1.8s ease-in-out infinite alternate}
+@keyframes bob{from{transform:translateY(-3px)}to{transform:translateY(3px)}}
+.pop{animation:pop .3s}
+@keyframes pop{0%{transform:scale(1)}30%{transform:scale(1.16,.84)}100%{transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){.bob,.pop{animation:none}}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <section class="side">
+    <span class="badge">Browser simulation, not a real Android overlay</span>
+    <h1>Reel Monster</h1>
+    <p>This page behaves like the Android app’s Level 1 (manual counting). On a phone the monster floats over other apps; here it floats over a sample feed.</p>
+    <div class="panel">
+      <h2>Try it</h2>
+      <ul>
+        <li>Tap the floating monster to count a reel. Drag it to move it.</li>
+        <li>Switch to Dashboard for the count, time, level, 7-day chart, switch and reset.</li>
+      </ul>
+    </div>
+    <div class="panel">
+      <h2>Skip ahead</h2>
+      <div class="row">
+        <button class="chip" data-add="5">+5 reels</button>
+        <button class="chip" data-add="10">+10 reels</button>
+        <button class="chip" data-add="25">+25 reels</button>
+      </div>
+      <p style="font-size:13px;margin:10px 0 0">Stages change at 6, 16, 31 and 51 reels. Counts reset when you reload; the real app saves them on the phone.</p>
+    </div>
+  </section>
+
+  <div class="phone" aria-label="Simulated phone">
+    <div class="screen" id="screen">
+      <div class="notch"></div>
+
+      <div class="view on" id="feed">
+        <div class="reel" id="reel">
+          <span class="sample">Sample feed, not a real app</span>
+          <button class="nextbtn" id="next">Next reel</button>
+          <b id="rtitle">Cat vs. cucumber</b>
+          <small id="rsub">Watching this? Tap the monster.</small>
+        </div>
+      </div>
+
+      <div class="view" id="dash">
+        <p class="t">Reel Monster</p>
+        <p class="sub">Your tiny scroll-watcher. Tap it every time you watch a reel.</p>
+        <div class="hero">
+          <button id="pv" aria-label="Monster preview. Tap to count a reel."></button>
+          <div class="msg" id="msg"></div>
+          <div class="big" id="count">0</div>
+          <div style="font-size:13px">reels today</div>
+        </div>
+        <div class="btns">
+          <button class="btn o" id="undo" aria-label="Remove one reel">−1</button>
+          <button class="btn p" id="add">+1 reel</button>
+        </div>
+        <div class="cards">
+          <div class="card"><small>Time scrolled</small><b id="time">0 min</b><small>estimate, 30 sec per reel</small></div>
+          <div class="card"><small>Monster level</small><b id="lvl">Level 1</b><small id="lvlname">Tiny and happy</small></div>
+        </div>
+        <div class="card" style="margin-bottom:10px">
+          <b style="font-size:16px">Last 7 days</b>
+          <div class="chart" id="chart"></div>
+        </div>
+        <div class="card switchrow" style="margin-bottom:6px">
+          <div><b style="font-size:16px">Floating monster</b><small>Floats above other apps.</small></div>
+          <button class="sw" id="sw" role="switch" aria-checked="true" aria-label="Floating monster"></button>
+        </div>
+        <button class="reset" id="reset">Start a new day (reset today)</button>
+        <p class="foot">Counting is manual. Automatic detection is not part of this version.</p>
+      </div>
+
+      <div class="tabs" role="tablist">
+        <button class="tab" role="tab" aria-selected="true" data-v="feed">Feed</button>
+        <button class="tab" role="tab" aria-selected="false" data-v="dash">Dashboard</button>
+      </div>
+
+      <div id="fm" class="on" role="button" tabindex="0" aria-label="Floating monster. Tap to count, drag to move.">
+        <div id="bubble"></div>
+        <div id="fmwrap" class="bob"><svg id="fmsvg" viewBox="0 0 100 100" width="64" height="64"></svg></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+(function(){
+  var COL=['#B9A2F5','#C58EF0','#A98BE0','#8F7FD1','#7C6BB8'];
+  var SCALE=[1,1.15,1.3,1.5,1.7], NAMES=['Tiny and happy','Excited','Confused','Huge and sleepy','Exhausted'];
+  var MSG=[
+    ['Hi! I’m tiny and I believe in you.','Just a few, right?','Cute reels only. I’m watching.'],
+    ['One more? Seriously?','Ooh, this one’s good. Okay, one more.','We’re warming up!'],
+    ['Wait, how long have we been here?','Girl, we’ve been here for HOURS.','Your thumb needs a vacation.'],
+    ['I’m so sleepy. Are you?','I live here now.','My eyes are closing. Yours should too.'],
+    ['PLEASE GO OUTSIDE.','I have become one with the feed.','Drink water. Look at a tree. Anything.']
+  ];
+  var REELS=[['Cat vs. cucumber','linear-gradient(160deg,#7A5CC9,#F27BAA)'],['Sourdough, day 9','linear-gradient(160deg,#F2A97B,#C58EF0)'],['Parkour pigeon','linear-gradient(160deg,#5C8CC9,#B9A2F5)'],['Tiny kitchen tour','linear-gradient(160deg,#F27BAA,#FFC2DA)'],['Sunset timelapse','linear-gradient(160deg,#3B2A5E,#F2A97B)']];
+
+  var days=[];for(var i=6;i>=1;i--){var d=new Date();d.setDate(d.getDate()-i);days.push(d.toLocaleDateString(undefined,{weekday:'short'}));}
+  var hist=[12,34,8,52,21,40];
+  var today=0,on=true,lastCount=-1,reelIdx=0,bubbleT=null,resetT=null;
+
+  function stageOf(c){return c<=5?0:c<=15?1:c<=30?2:c<=50?3:4}
+  function pick(c){var a=MSG[stageOf(c)];return a[Math.floor(Math.random()*a.length)]}
+  function timeLabel(c){var m=Math.floor(c*30/60);return m>=60?Math.floor(m/60)+'h '+(m%60)+'m':m+' min'}
+
+  function svg(s){
+    var c=COL[s],ink='#3B2A5E',p='#F27BAA',o='';
+    o+='<path d="M24 30 L18 8 L42 22Z" fill="'+p+'"/><path d="M76 30 L82 8 L58 22Z" fill="'+p+'"/>';
+    o+='<rect x="10" y="18" width="80" height="76" rx="32" fill="'+c+'"/>';
+    o+='<ellipse cx="50" cy="76" rx="22" ry="14" fill="#fff" opacity=".33"/>';
+    o+='<circle cx="22" cy="60" r="5" fill="#FF9EC4" opacity=".5"/><circle cx="78" cy="60" r="5" fill="#FF9EC4" opacity=".5"/>';
+    [[30,0],[70,1]].forEach(function(e){
+      var x=e[0],r=10,left=e[1]===0;
+      if(s===4){
+        o+='<ellipse cx="'+x+'" cy="'+(48+4)+'" rx="10" ry="5" fill="#3B2A5E" opacity=".25"/>';
+        o+='<line x1="'+(x-10)+'" y1="46" x2="'+(x+10)+'" y2="'+(left?49:43)+'" stroke="'+ink+'" stroke-width="3.5" stroke-linecap="round"/>';
+        return;
+      }
+      var big=(s===2&&!left)?1.25:1;
+      o+='<circle cx="'+x+'" cy="46" r="'+(r*big)+'" fill="#fff"/>';
+      o+='<circle cx="'+(x+(s===2?-2.5:0))+'" cy="47" r="'+(5*big)+'" fill="'+ink+'"/>';
+      if(s<=1)o+='<circle cx="'+(x+1.5)+'" cy="44.5" r="1.8" fill="#fff"/>';
+      if(s===3){o+='<rect x="'+(x-11)+'" y="34" width="22" height="13" fill="'+c+'"/><line x1="'+(x-10)+'" y1="47" x2="'+(x+10)+'" y2="47" stroke="'+ink+'" stroke-width="2.5" stroke-linecap="round"/>';}
+      if(s===2&&!left)o+='<line x1="60" y1="30" x2="80" y2="27" stroke="'+ink+'" stroke-width="2.5" stroke-linecap="round"/>';
+    });
+    var m='';
+    if(s===0)m='<path d="M40 66 Q50 76 60 66" stroke="'+ink+'" stroke-width="3" fill="none" stroke-linecap="round"/>';
+    if(s===1)m='<ellipse cx="50" cy="70" rx="9" ry="7" fill="'+ink+'"/><ellipse cx="50" cy="74" rx="5" ry="3" fill="'+p+'"/>';
+    if(s===2)m='<path d="M40 70 Q45 65 50 70 Q55 75 60 70" stroke="'+ink+'" stroke-width="3" fill="none" stroke-linecap="round"/>';
+    if(s===3)m='<circle cx="50" cy="70" r="4" stroke="'+ink+'" stroke-width="3" fill="none"/>';
+    if(s===4)m='<path d="M41 76 Q50 66 59 76" stroke="'+ink+'" stroke-width="3" fill="none" stroke-linecap="round"/>';
+    o+=m;
+    if(s===3)o+='<text x="80" y="18" font-size="15" font-weight="700" fill="'+ink+'" font-family="Fredoka,sans-serif">z</text><text x="89" y="9" font-size="10" font-weight="700" fill="'+ink+'" font-family="Fredoka,sans-serif">z</text>';
+    if(s===4)o+='<path d="M86 30 Q91 38 86 41 Q81 38 86 30Z" fill="#9ADCFF"/>';
+    return o;
+  }
+
+  var $=function(id){return document.getElementById(id)};
+  var fm=$('fm'),fmsvg=$('fmsvg'),bubble=$('bubble'),pv=$('pv');
+  pv.innerHTML='<svg viewBox="0 0 100 100" width="120" height="120" id="pvsvg"></svg>';
+  var pvsvg=$('pvsvg');
+
+  function render(){
+    var s=stageOf(today);
+    fmsvg.innerHTML=svg(s);pvsvg.innerHTML=svg(s);
+    var px=Math.round(64*SCALE[s]);fmsvg.setAttribute('width',px);fmsvg.setAttribute('height',px);
+    $('count').textContent=today;
+    $('time').textContent=timeLabel(today);
+    $('lvl').textContent='Level '+(s+1);
+    $('lvlname').textContent=NAMES[s];
+    if(today!==lastCount){$('msg').textContent=pick(today);lastCount=today;}
+    var all=hist.concat([today]),max=Math.max(10,Math.max.apply(null,all));
+    var labels=days.concat(['Today']),h='';
+    all.forEach(function(v,i){h+='<div class="col'+(i===6?' today':'')+'"><span>'+v+'</span><i style="height:'+Math.max(4,v/max*88)+'px"></i>'+labels[i]+'</div>';});
+    $('chart').innerHTML=h;
+    fm.classList.toggle('on',on);
+    $('sw').setAttribute('aria-checked',on);
+  }
+  function restart(el,cls){el.classList.remove(cls);void el.offsetWidth;el.classList.add(cls)}
+  function say(){
+    bubble.textContent=pick(today);bubble.classList.add('show');
+    clearTimeout(bubbleT);bubbleT=setTimeout(function(){bubble.classList.remove('show')},3500);
+  }
+  function addReel(n,fromFloating){
+    today+=n||1;render();
+    restart($('fmwrap'),'pop');restart(pv,'pop');
+    if(on&&($('feed').classList.contains('on')||fromFloating||true))say();
+  }
+
+  // floating monster: drag vs tap
+  var scr=$('screen'),drag=null;
+  fm.style.left='14px';fm.style.top='250px';
+  fm.addEventListener('pointerdown',function(e){
+    drag={x:e.clientX,y:e.clientY,l:fm.offsetLeft,t:fm.offsetTop,moved:false};
+    fm.setPointerCapture(e.pointerId);
+  });
+  fm.addEventListener('pointermove',function(e){
+    if(!drag)return;
+    var dx=e.clientX-drag.x,dy=e.clientY-drag.y;
+    if(Math.abs(dx)+Math.abs(dy)>6)drag.moved=true;
+    if(drag.moved){
+      var maxL=scr.clientWidth-fm.offsetWidth,maxT=scr.clientHeight-fm.offsetHeight-58;
+      fm.style.left=Math.max(0,Math.min(maxL,drag.l+dx))+'px';
+      fm.style.top=Math.max(30,Math.min(maxT,drag.t+dy))+'px';
+    }
+  });
+  fm.addEventListener('pointerup',function(){var d=drag;drag=null;if(d&&!d.moved)addReel(1,true);});
+  fm.addEventListener('pointercancel',function(){drag=null});
+  fm.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();addReel(1,true)}});
+
+  // tabs
+  document.querySelectorAll('.tab').forEach(function(t){
+    t.addEventListener('click',function(){
+      document.querySelectorAll('.tab').forEach(function(x){x.setAttribute('aria-selected',x===t)});
+      document.querySelectorAll('.view').forEach(function(v){v.classList.toggle('on',v.id===t.dataset.v)});
+    });
+  });
+
+  $('next').addEventListener('click',function(){
+    reelIdx=(reelIdx+1)%REELS.length;
+    $('reel').style.background=REELS[reelIdx][1];$('rtitle').textContent=REELS[reelIdx][0];
+  });
+  $('reel').style.background=REELS[0][1];
+
+  $('add').addEventListener('click',function(){addReel(1)});
+  pv.addEventListener('click',function(){addReel(1)});
+  $('undo').addEventListener('click',function(){today=Math.max(0,today-1);render()});
+  $('sw').addEventListener('click',function(){on=!on;render()});
+  document.querySelectorAll('[data-add]').forEach(function(b){
+    b.addEventListener('click',function(){addReel(parseInt(b.dataset.add,10))});
+  });
+  $('reset').addEventListener('click',function(){
+    var b=$('reset');
+    if(b.dataset.armed){today=0;lastCount=-1;b.dataset.armed='';b.textContent='Start a new day (reset today)';clearTimeout(resetT);render();return}
+    b.dataset.armed='1';b.textContent='Tap again to reset today’s count';
+    resetT=setTimeout(function(){b.dataset.armed='';b.textContent='Start a new day (reset today)'},3000);
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
